@@ -226,16 +226,42 @@ const App = () => {
           position: 'relative',
           paddingTop: '80px',
         }}>
+          {/* Video-Hintergrund */}
           <div style={{
             position: 'absolute',
             top: 0,
             left: 0,
             width: '100%',
             height: '100%',
-            backgroundColor: '#FFF8E6',
-            backgroundImage: 'linear-gradient(rgba(255, 248, 230, 0.4), rgba(255, 248, 230, 0.9))',
+            overflow: 'hidden',
             zIndex: -1,
-          }}></div>
+          }}>
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              style={{
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
+            >
+              <source src="/background.mp4" type="video/mp4" />
+              Dein Browser unterstützt keine Videos.
+            </video>
+            {/* Overlay für bessere Lesbarkeit */}
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              backgroundColor: 'rgba(255, 248, 230, 0.6)',
+            }}></div>
+          </div>
+          
           <div style={{
             maxWidth: '800px',
             zIndex: 10, // Erhöht von 1 auf 10, damit die Buttons klickbar sind
