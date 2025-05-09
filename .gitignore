@@ -1,0 +1,15 @@
+# Betriebssystem-Dateien
+.DS_Store
+Thumbs.db
+
+# Node.js-Abhängigkeiten
+node_modules/
+npm-debug.log
+
+# Build-Ordner
+/build
+/dist
+
+# Umgebungsvariablen
+.env
+.env.local
