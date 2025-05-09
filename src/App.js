@@ -234,7 +234,7 @@ const App = () => {
           }}></div>
           <div style={{
             maxWidth: '800px',
-            zIndex: 1,
+            zIndex: 10, // Erhöht von 1 auf 10, damit die Buttons klickbar sind
             padding: '0 20px',
           }}>
             <h1 style={{
@@ -295,7 +295,15 @@ const App = () => {
             </div>
           </div>
           {/* Bienen-Animation */}
-          <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 1 }}>
+          <div style={{ 
+            position: 'absolute', 
+            top: 0, 
+            left: 0, 
+            width: '100%', 
+            height: '100%', 
+            zIndex: 5, 
+            pointerEvents: 'none' // Hinzugefügt, damit Klicks durch den Container durchgehen
+          }}>
             {bees.map(bee => (
               <div
                 key={bee.id}
@@ -313,6 +321,7 @@ const App = () => {
                   opacity: 0.8,
                   cursor: 'pointer',
                   zIndex: 5,
+                  pointerEvents: 'auto', // Bienen selbst bleiben anklickbar
                   transition: 'left 0.1s linear, top 0.1s linear, transform 0.3s ease-in-out'
                 }}
               />
