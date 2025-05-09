@@ -23,11 +23,9 @@ const App = () => {
           id: i,
           x: Math.random() * 80 + 10, // 10-90% (x-Position)
           y: Math.random() * 80 + 10, // 10-90% (y-Position)
-          size: Math.random() * 20 + 20, // 20-40px
+          size: Math.random() * 20 + 40, // 40-60px (größer als vorher)
           speedX: (Math.random() - 0.5) * 0.8, // Zufällige Richtung und Geschwindigkeit
           speedY: (Math.random() - 0.5) * 0.8,
-          rotation: Math.random() * 360, // Zufällige Rotation
-          rotationSpeed: (Math.random() - 0.5) * 2 // Rotationsgeschwindigkeit
         });
       }
       beesRef.current = initialBees;
@@ -55,19 +53,26 @@ const App = () => {
         let newSpeedX = bee.speedX;
         let newSpeedY = bee.speedY;
         
+        // Zufällige kleine Richtungsänderungen für natürlicheres Flugverhalten
+        if (Math.random() < 0.03) { // 3% Chance pro Frame
+          newSpeedX += (Math.random() - 0.5) * 0.2;
+          newSpeedY += (Math.random() - 0.5) * 0.2;
+          
+          // Maximale Geschwindigkeit begrenzen
+          newSpeedX = Math.max(-1.2, Math.min(1.2, newSpeedX));
+          newSpeedY = Math.max(-1.2, Math.min(1.2, newSpeedY));
+        }
+        
         // Grenzen prüfen
         if (newX <= 0 || newX >= 100) {
-          newSpeedX = -newSpeedX;
+          newSpeedX = -newSpeedX; // Richtungswechsel
           newX = Math.max(0, Math.min(100, newX));
         }
         
         if (newY <= 0 || newY >= 100) {
-          newSpeedY = -newSpeedY;
+          newSpeedY = -newSpeedY; // Richtungswechsel
           newY = Math.max(0, Math.min(100, newY));
         }
-        
-        // Rotation aktualisieren
-        let newRotation = (bee.rotation + bee.rotationSpeed) % 360;
         
         return {
           ...bee,
@@ -75,7 +80,6 @@ const App = () => {
           y: newY,
           speedX: newSpeedX,
           speedY: newSpeedY,
-          rotation: newRotation
         };
       });
       
@@ -301,7 +305,7 @@ const App = () => {
             left: 0, 
             width: '100%', 
             height: '100%', 
-            zIndex: 5, 
+            zIndex: 5,
             pointerEvents: 'none' // Hinzugefügt, damit Klicks durch den Container durchgehen
           }}>
             {bees.map(bee => (
@@ -310,19 +314,23 @@ const App = () => {
                 onClick={() => setShowGame(true)}
                 style={{
                   position: 'absolute',
-                  width: `${bee.size}px`,
-                  height: `${bee.size}px`,
+                  width: `${bee.size * 1.5}px`, // 1.5x größer als vorher
+                  height: `${bee.size * 1.5}px`, // 1.5x größer als vorher
                   left: `${bee.x}%`,
                   top: `${bee.y}%`,
-                  backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="%23FFC145" d="M368.8 352h-22.4c-4.8 0-9.6-2.4-12.8-6.4-3.2-4-4-8.8-3.2-14.4 6.4-40.8 10.4-113.6-33.6-164.8-44-51.2-116.8-52.8-157.6-52.8-5.6 0-10.4-2.4-13.6-6.4-3.2-4-4-8.8-2.4-13.6 1.6-4.8 4.8-8.8 9.6-10.4 52.8-20.8 109.6-9.6 152.8 29.6 43.2 39.2 64 99.2 56 159.2 93.6 8 136.8 62.4 145.6 72C522.4 360 460 352 368.8 352zM150.4 117.6c34.4 2.4 87.2 12 119.2 49.6 24.8 29.6 34.4 67.2 35.2 113.6 11.2-10.4 26.4-16 44-16 15.2 0 29.6 5.6 40.8 15.2 7.2-16 10.4-32.8 10.4-48.8 0-20.8-5.6-41.6-16-59.2-31.2-52.8-98.4-76-151.2-52.8-29.6 12.8-61.6 12.8-91.2 0-8-3.2-12-12-8.8-20s12-12 20-8.8c36.8 15.2 78.4 15.2 115.2 0 74.4-32.8 166.4 0.8 208 73.6 12.8 22.4 20 47.2 20 72.8 0 27.2-7.2 54.4-20.8 78.4z"/></svg>')`,
+                  // Wähle das richtige Bild basierend auf der Flugrichtung
+                  backgroundImage: bee.speedX >= 0 
+                    ? `url('/biene-rechts.png')` // Original-Biene (nach rechts fliegend)
+                    : `url('/biene-links.png')`, // Spiegelverkehrte Biene (nach links fliegend)
                   backgroundSize: 'contain',
                   backgroundRepeat: 'no-repeat',
-                  transform: `rotate(${bee.rotation}deg)`,
+                  // Leichte Zitterbewegung statt Rotation hinzufügen
+                  transform: `translateY(${Math.sin(Date.now() * 0.01 + bee.id) * 3}px)`,
                   opacity: 0.8,
                   cursor: 'pointer',
                   zIndex: 5,
                   pointerEvents: 'auto', // Bienen selbst bleiben anklickbar
-                  transition: 'left 0.1s linear, top 0.1s linear, transform 0.3s ease-in-out'
+                  transition: 'left 0.1s linear, top 0.1s linear'
                 }}
               />
             ))}
@@ -533,6 +541,124 @@ const App = () => {
             >
               Zurück zur Startseite
             </button>
+          </div>
+        </section>
+      )}
+
+      {/* Kontaktseite */}
+      {activePage === 'contact' && (
+        <section style={{
+          padding: '100px 5%',
+          backgroundColor: '#FFF8E6',
+          minHeight: '100vh',
+        }}>
+          <div style={{
+            textAlign: 'center',
+            marginBottom: '50px',
+          }}>
+            <h2 style={{
+              fontSize: '2.5rem',
+              marginBottom: '15px',
+              color: '#3A3A3A',
+            }}>Kontakt</h2>
+            <p style={{
+              fontSize: '1.1rem',
+              maxWidth: '700px',
+              margin: '0 auto',
+              color: '#3A3A3A',
+              lineHeight: 1.6,
+            }}>Hast du Fragen zu unserem Honig oder möchtest du eine Bestellung aufgeben? Kontaktiere uns gerne!</p>
+          </div>
+          
+          <div style={{
+            maxWidth: '600px',
+            margin: '0 auto',
+            backgroundColor: 'white',
+            padding: '40px',
+            borderRadius: '20px',
+            boxShadow: '0 15px 30px rgba(0, 0, 0, 0.1)',
+          }}>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              alert('Nachricht wurde gesendet!');
+            }}>
+              <div style={{
+                marginBottom: '20px',
+              }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontWeight: 500,
+                }}>Name</label>
+                <input 
+                  type="text" 
+                  placeholder="Dein Name" 
+                  required 
+                  style={{
+                    width: '100%',
+                    padding: '12px 15px',
+                    border: '2px solid #FFF8E6',
+                    borderRadius: '8px',
+                    fontSize: '1rem',
+                  }}
+                />
+              </div>
+              
+              <div style={{
+                marginBottom: '20px',
+              }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontWeight: 500,
+                }}>E-Mail</label>
+                <input 
+                  type="email" 
+                  placeholder="Deine E-Mail" 
+                  required 
+                  style={{
+                    width: '100%',
+                    padding: '12px 15px',
+                    border: '2px solid #FFF8E6',
+                    borderRadius: '8px',
+                    fontSize: '1rem',
+                  }}
+                />
+              </div>
+              
+              <div style={{
+                marginBottom: '20px',
+              }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontWeight: 500,
+                }}>Nachricht</label>
+                <textarea 
+                  placeholder="Deine Nachricht" 
+                  rows="5" 
+                  required 
+                  style={{
+                    width: '100%',
+                    padding: '12px 15px',
+                    border: '2px solid #FFF8E6',
+                    borderRadius: '8px',
+                    fontSize: '1rem',
+                    resize: 'vertical',
+                  }}
+                />
+              </div>
+              
+              <button type="submit" style={{
+                backgroundColor: '#69A297',
+                color: 'white',
+                border: 'none',
+                padding: '12px 25px',
+                borderRadius: '8px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}>Nachricht senden</button>
+            </form>
           </div>
         </section>
       )}
