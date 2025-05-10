@@ -612,7 +612,7 @@ const App = () => {
           minHeight: '100vh',
         }}>
           <div style={{
-            maxWidth: '900px',
+            maxWidth: '1000px',
             margin: '0 auto',
           }}>
             <h2 style={{
@@ -634,48 +634,126 @@ const App = () => {
               </p>
             </div>
 
-            {/* Das Team */}
+            {/* Das Team - MIT FOTOS */}
             <div style={{ marginBottom: '50px' }}>
               <h3 style={{ 
                 fontSize: isMobile ? '1.5rem' : '1.8rem', 
-                marginBottom: '20px',
+                marginBottom: '40px',
                 color: '#69A297',
               }}>Das Team</h3>
               
-              {/* Jonathan */}
-              <div style={{ marginBottom: '30px' }}>
-                <h4 style={{ 
-                  fontSize: isMobile ? '1.1rem' : '1.3rem', 
-                  marginBottom: '10px',
-                  color: '#3A3A3A',
-                }}>Jonathan Heil</h4>
-                <p style={{ lineHeight: 1.6, fontSize: isMobile ? '0.95rem' : '1rem' }}>
-                  Jonathan ist unser Bienenverstehender. Mit einem Hintergrund in Biologie hat er ein unglaubliches Gespür für die Bedürfnisse unserer Völker. Er kann stundenlang am Bienenstock sitzen und das Verhalten der kleinen Honigproduzenten beobachten. "Die Bienen sind wie ein Superorganismus", sagt er oft, "jede einzelne spielt ihre Rolle perfekt, ohne je einen Führerschein für das Leben bekommen zu haben." Wenn Jonathan nicht gerade bei den Bienen ist, experimentiert er mit neuen, bienenfreundlichen Pflanzungen rund um unsere Standorte.
-                </p>
+              {/* Jonathan - mit Foto */}
+              <div style={{ 
+                marginBottom: '50px',
+                display: 'flex',
+                flexDirection: isMobile ? 'column' : 'row',
+                gap: isMobile ? '20px' : '40px',
+                alignItems: isMobile ? 'center' : 'flex-start',
+              }}>
+                <div style={{
+                  flexShrink: 0,
+                  width: isMobile ? '200px' : '250px',
+                  height: isMobile ? '200px' : '250px',
+                  borderRadius: '15px',
+                  overflow: 'hidden',
+                  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                }}>
+                  <img 
+                    src="/team/jonathan.jpg" // Platzhalter - wird später durch echtes Foto ersetzt
+                    alt="Jonathan Heil" 
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                    }}
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <h4 style={{ 
+                    fontSize: isMobile ? '1.1rem' : '1.3rem', 
+                    marginBottom: '10px',
+                    color: '#3A3A3A',
+                  }}>Jonathan Heil</h4>
+                  <p style={{ lineHeight: 1.6, fontSize: isMobile ? '0.95rem' : '1rem' }}>
+                    Jonathan ist unser Bienenverstehender. Mit einem Hintergrund in Biologie hat er ein unglaubliches Gespür für die Bedürfnisse unserer Völker. Er kann stundenlang am Bienenstock sitzen und das Verhalten der kleinen Honigproduzenten beobachten. "Die Bienen sind wie ein Superorganismus", sagt er oft, "jede einzelne spielt ihre Rolle perfekt, ohne je einen Führerschein für das Leben bekommen zu haben." Wenn Jonathan nicht gerade bei den Bienen ist, experimentiert er mit neuen, bienenfreundlichen Pflanzungen rund um unsere Standorte.
+                  </p>
+                </div>
               </div>
               
-              {/* Thorben */}
-              <div style={{ marginBottom: '30px' }}>
-                <h4 style={{ 
-                  fontSize: isMobile ? '1.1rem' : '1.3rem', 
-                  marginBottom: '10px',
-                  color: '#3A3A3A',
-                }}>Thorben Heil</h4>
-                <p style={{ lineHeight: 1.6, fontSize: isMobile ? '0.95rem' : '1rem' }}>
-                  Thorben ist der Handwerker in unserem Team. Von der Konstruktion optimaler Bienenstöcke bis hin zur Verfeinerung unserer Honigschleuder – er sorgt dafür, dass unsere Ausrüstung perfekt funktioniert. Mit seinem Hintergrund als Zimmermann achtet er besonders auf nachhaltige Materialien und regionale Holzquellen. "Qualität beginnt beim Zuhause der Bienen", ist sein Motto. Thorben kennt zudem jeden Winkel der Pfälzer Landschaft und hat ein untrügliches Gespür für die besten Standorte unserer Bienenvölker.
-                </p>
+              {/* Thorben - mit Foto */}
+              <div style={{ 
+                marginBottom: '50px',
+                display: 'flex',
+                flexDirection: isMobile ? 'column' : 'row-reverse',
+                gap: isMobile ? '20px' : '40px',
+                alignItems: isMobile ? 'center' : 'flex-start',
+              }}>
+                <div style={{
+                  flexShrink: 0,
+                  width: isMobile ? '200px' : '250px',
+                  height: isMobile ? '200px' : '250px',
+                  borderRadius: '15px',
+                  overflow: 'hidden',
+                  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                }}>
+                  <img 
+                    src="/team/thorben.jpg" // Platzhalter - wird später durch echtes Foto ersetzt
+                    alt="Thorben Müller" 
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                    }}
+                  />
+                </div>
+                <div style={{ flex: 1, textAlign: isMobile ? 'center' : 'left' }}>
+                  <h4 style={{ 
+                    fontSize: isMobile ? '1.1rem' : '1.3rem', 
+                    marginBottom: '10px',
+                    color: '#3A3A3A',
+                  }}>Thorben Müller</h4>
+                  <p style={{ lineHeight: 1.6, fontSize: isMobile ? '0.95rem' : '1rem' }}>
+                    Thorben ist der Handwerker in unserem Team. Von der Konstruktion optimaler Bienenstöcke bis hin zur Verfeinerung unserer Honigschleuder – er sorgt dafür, dass unsere Ausrüstung perfekt funktioniert. Mit seinem Hintergrund als Zimmermann achtet er besonders auf nachhaltige Materialien und regionale Holzquellen. "Qualität beginnt beim Zuhause der Bienen", ist sein Motto. Thorben kennt zudem jeden Winkel der Pfälzer Landschaft und hat ein untrügliches Gespür für die besten Standorte unserer Bienenvölker.
+                  </p>
+                </div>
               </div>
               
-              {/* Philipp */}
-              <div style={{ marginBottom: '30px' }}>
-                <h4 style={{ 
-                  fontSize: isMobile ? '1.1rem' : '1.3rem', 
-                  marginBottom: '10px',
-                  color: '#3A3A3A',
-                }}>Philipp Haas</h4>
-                <p style={{ lineHeight: 1.6, fontSize: isMobile ? '0.95rem' : '1rem' }}>
-                  Philipp ist unser Genießer und Vermarkter. Mit seiner Leidenschaft für gutes Essen und seinem feinen Geschmackssinn ist er der Qualitätsprüfer unserer Honige. "Jedes Glas erzählt eine Geschichte über die Landschaft, in der die Bienen geflogen sind", erklärt er gerne bei Verkostungen. Philipp kümmert sich auch um unsere Kommunikation und Vermarktung, denn er liebt es, die Begeisterung für unseren Honig mit anderen zu teilen. Wenn er nicht gerade neue Rezepte mit Honig ausprobiert, ist er auf lokalen Märkten anzutreffen, wo er mit Kunden ins Gespräch kommt.
-                </p>
+              {/* Philipp - mit Foto */}
+              <div style={{ 
+                marginBottom: '30px',
+                display: 'flex',
+                flexDirection: isMobile ? 'column' : 'row',
+                gap: isMobile ? '20px' : '40px',
+                alignItems: isMobile ? 'center' : 'flex-start',
+              }}>
+                <div style={{
+                  flexShrink: 0,
+                  width: isMobile ? '200px' : '250px',
+                  height: isMobile ? '200px' : '250px',
+                  borderRadius: '15px',
+                  overflow: 'hidden',
+                  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                }}>
+                  <img 
+                    src="/team/philipp.jpg" // Platzhalter - wird später durch echtes Foto ersetzt
+                    alt="Philipp Haas" 
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                    }}
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <h4 style={{ 
+                    fontSize: isMobile ? '1.1rem' : '1.3rem', 
+                    marginBottom: '10px',
+                    color: '#3A3A3A',
+                  }}>Philipp Haas</h4>
+                  <p style={{ lineHeight: 1.6, fontSize: isMobile ? '0.95rem' : '1rem' }}>
+                    Philipp ist unser Genießer und Vermarkter. Mit seiner Leidenschaft für gutes Essen und seinem feinen Geschmackssinn ist er der Qualitätsprüfer unserer Honige. "Jedes Glas erzählt eine Geschichte über die Landschaft, in der die Bienen geflogen sind", erklärt er gerne bei Verkostungen. Philipp kümmert sich auch um unsere Kommunikation und Vermarktung, denn er liebt es, die Begeisterung für unseren Honig mit anderen zu teilen. Wenn er nicht gerade neue Rezepte mit Honig ausprobiert, ist er auf lokalen Märkten anzutreffen, wo er mit Kunden ins Gespräch kommt.
+                  </p>
+                </div>
               </div>
             </div>
 
