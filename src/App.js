@@ -8,10 +8,22 @@ const App = () => {
   const [formData, setFormData] = useState({ name: '', email: '' });
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [showGame, setShowGame] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
   
   // Referenzen für Animationen
   const animationRef = useRef(null);
   const beesRef = useRef([]);
+  const videoRef = useRef(null);
+
+  // Video-Events-Handler
+  const handleVideoLoad = () => {
+    console.log("Video wurde geladen!");
+    setVideoLoaded(true);
+  };
+
+  const handleVideoError = (e) => {
+    console.error("Video-Fehler:", e);
+  };
 
   // Bienen initialisieren
   useEffect(() => {
@@ -226,7 +238,7 @@ const App = () => {
           position: 'relative',
           paddingTop: '80px',
         }}>
-          {/* Video-Hintergrund */}
+          {/* Video-Hintergrund - Sichtbarkeit verbessert */}
           <div style={{
             position: 'absolute',
             top: 0,
@@ -234,37 +246,45 @@ const App = () => {
             width: '100%',
             height: '100%',
             overflow: 'hidden',
-            zIndex: -1,
+            zIndex: 0, // Erhöht von -1 auf 0, damit das Video über dem Hintergrund liegt
+            backgroundColor: 'transparent', // War vorher #FFF8E6
           }}>
             <video
+              ref={videoRef}
               autoPlay
               loop
               muted
               playsInline
+              onLoadedData={handleVideoLoad}
+              onError={handleVideoError}
               style={{
-                position: 'absolute',
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
+                display: 'block',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                opacity: 1, // Volle Sichtbarkeit sicherstellen
               }}
             >
-              <source src="/background.mp4" type="video/mp4" />
-              Dein Browser unterstützt keine Videos.
+              <source src="background.mp4" type="video/mp4" />
             </video>
-            {/* Overlay für bessere Lesbarkeit */}
+            
+            {/* Overlay leicht transparent machen, damit das Video besser sichtbar ist */}
             <div style={{
               position: 'absolute',
               top: 0,
               left: 0,
               width: '100%',
               height: '100%',
-              backgroundColor: 'rgba(255, 248, 230, 0.6)',
+              backgroundColor: 'rgba(255, 248, 230, 0.3)', // Von 0.5 auf 0.3 reduziert für bessere Sichtbarkeit
             }}></div>
           </div>
           
           <div style={{
             maxWidth: '800px',
-            zIndex: 10, // Erhöht von 1 auf 10, damit die Buttons klickbar sind
+            zIndex: 10, 
             padding: '0 20px',
           }}>
             <h1 style={{
@@ -283,7 +303,6 @@ const App = () => {
               justifyContent: 'center',
               flexWrap: 'wrap',
             }}>
-              {/* Vereinfachte Buttons mit direktem onClick */}
               <button 
                 onClick={() => setActivePage('products')}
                 style={{
@@ -332,7 +351,7 @@ const App = () => {
             width: '100%', 
             height: '100%', 
             zIndex: 5,
-            pointerEvents: 'none' // Hinzugefügt, damit Klicks durch den Container durchgehen
+            pointerEvents: 'none' 
           }}>
             {bees.map(bee => (
               <div
@@ -340,22 +359,20 @@ const App = () => {
                 onClick={() => setShowGame(true)}
                 style={{
                   position: 'absolute',
-                  width: `${bee.size * 1.5}px`, // 1.5x größer als vorher
-                  height: `${bee.size * 1.5}px`, // 1.5x größer als vorher
+                  width: `${bee.size * 1.5}px`, 
+                  height: `${bee.size * 1.5}px`, 
                   left: `${bee.x}%`,
                   top: `${bee.y}%`,
-                  // Wähle das richtige Bild basierend auf der Flugrichtung
                   backgroundImage: bee.speedX >= 0 
-                    ? `url('/biene-rechts.png')` // Original-Biene (nach rechts fliegend)
-                    : `url('/biene-links.png')`, // Spiegelverkehrte Biene (nach links fliegend)
+                    ? `url('/biene-rechts.png')` 
+                    : `url('/biene-links.png')`,
                   backgroundSize: 'contain',
                   backgroundRepeat: 'no-repeat',
-                  // Leichte Zitterbewegung statt Rotation hinzufügen
                   transform: `translateY(${Math.sin(Date.now() * 0.01 + bee.id) * 3}px)`,
                   opacity: 0.8,
                   cursor: 'pointer',
                   zIndex: 5,
-                  pointerEvents: 'auto', // Bienen selbst bleiben anklickbar
+                  pointerEvents: 'auto',
                   transition: 'left 0.1s linear, top 0.1s linear'
                 }}
               />
@@ -402,7 +419,7 @@ const App = () => {
               maxWidth: '500px',
             }}>
               <img 
-                src="https://via.placeholder.com/500x500?text=Honig"
+                src="/honigglas.jpg"
                 alt="Honiglas Mockup" 
                 style={{
                   width: '100%',
@@ -536,42 +553,149 @@ const App = () => {
           backgroundColor: '#FFF8E6',
           minHeight: '100vh',
         }}>
-          <h2 style={{
-            fontSize: '2.5rem',
-            textAlign: 'center',
-            marginBottom: '40px',
-          }}>Über uns</h2>
-          <p style={{
-            textAlign: 'center',
-            maxWidth: '800px',
-            margin: '0 auto 40px',
-            lineHeight: 1.6,
-          }}>Wir sind die neue Generation Imker aus der Pfalz. Aus Leidenschaft für Bienen, Natur und gutes Essen.</p>
-          
           <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            marginTop: '40px',
+            maxWidth: '900px',
+            margin: '0 auto',
           }}>
-            <button
-              onClick={() => setActivePage('home')}
-              style={{
-                padding: '14px 25px',
-                borderRadius: '50px',
-                backgroundColor: '#FFC145',
-                color: '#3A3A3A',
-                border: 'none',
-                cursor: 'pointer',
+            <h2 style={{
+              fontSize: '2.5rem',
+              textAlign: 'center',
+              marginBottom: '40px',
+              color: '#3A3A3A',
+            }}>Über uns</h2>
+
+            {/* Unsere Geschichte */}
+            <div style={{ marginBottom: '50px' }}>
+              <h3 style={{ 
+                fontSize: '1.8rem', 
+                marginBottom: '20px',
+                color: '#69A297',
+              }}>Unsere Geschichte</h3>
+              <p style={{ lineHeight: 1.6 }}>
+                Was als gemeinsames Hobby während unserer Studienzeit begann, ist heute unsere Leidenschaft geworden. Wir - Philipp, Thorben und Jonathan - sind drei Freunde, die durch die Liebe zur Natur und die Faszination für Bienen zusammengefunden haben. Aus einem kleinen Bienenstock im Schrebergarten von Thorben's Opa ist mittlerweile die Imkerei Haas, Heil & Müller gewachsen.
+              </p>
+            </div>
+
+            {/* Das Team */}
+            <div style={{ marginBottom: '50px' }}>
+              <h3 style={{ 
+                fontSize: '1.8rem', 
+                marginBottom: '20px',
+                color: '#69A297',
+              }}>Das Team</h3>
+              
+              {/* Jonathan */}
+              <div style={{ marginBottom: '30px' }}>
+                <h4 style={{ 
+                  fontSize: '1.3rem', 
+                  marginBottom: '10px',
+                  color: '#3A3A3A',
+                }}>Jonathan Heil</h4>
+                <p style={{ lineHeight: 1.6 }}>
+                  Jonathan ist unser Bienenverstehender. Mit einem Hintergrund in Biologie hat er ein unglaubliches Gespür für die Bedürfnisse unserer Völker. Er kann stundenlang am Bienenstock sitzen und das Verhalten der kleinen Honigproduzenten beobachten. "Die Bienen sind wie ein Superorganismus", sagt er oft, "jede einzelne spielt ihre Rolle perfekt, ohne je einen Führerschein für das Leben bekommen zu haben." Wenn Jonathan nicht gerade bei den Bienen ist, experimentiert er mit neuen, bienenfreundlichen Pflanzungen rund um unsere Standorte.
+                </p>
+              </div>
+              
+              {/* Thorben */}
+              <div style={{ marginBottom: '30px' }}>
+                <h4 style={{ 
+                  fontSize: '1.3rem', 
+                  marginBottom: '10px',
+                  color: '#3A3A3A',
+                }}>Thorben Heil</h4>
+                <p style={{ lineHeight: 1.6 }}>
+                  Thorben ist der Handwerker in unserem Team. Von der Konstruktion optimaler Bienenstöcke bis hin zur Verfeinerung unserer Honigschleuder – er sorgt dafür, dass unsere Ausrüstung perfekt funktioniert. Mit seinem Hintergrund als Zimmermann achtet er besonders auf nachhaltige Materialien und regionale Holzquellen. "Qualität beginnt beim Zuhause der Bienen", ist sein Motto. Thorben kennt zudem jeden Winkel der Pfälzer Landschaft und hat ein untrügliches Gespür für die besten Standorte unserer Bienenvölker.
+                </p>
+              </div>
+              
+              {/* Philipp */}
+              <div style={{ marginBottom: '30px' }}>
+                <h4 style={{ 
+                  fontSize: '1.3rem', 
+                  marginBottom: '10px',
+                  color: '#3A3A3A',
+                }}>Philipp Haas</h4>
+                <p style={{ lineHeight: 1.6 }}>
+                  Philipp ist unser Genießer und Vermarkter. Mit seiner Leidenschaft für gutes Essen und seinem feinen Geschmackssinn ist er der Qualitätsprüfer unserer Honige. "Jedes Glas erzählt eine Geschichte über die Landschaft, in der die Bienen geflogen sind", erklärt er gerne bei Verkostungen. Philipp kümmert sich auch um unsere Kommunikation und Vermarktung, denn er liebt es, die Begeisterung für unseren Honig mit anderen zu teilen. Wenn er nicht gerade neue Rezepte mit Honig ausprobiert, ist er auf lokalen Märkten anzutreffen, wo er mit Kunden ins Gespräch kommt.
+                </p>
+              </div>
+            </div>
+
+            {/* Unsere Philosophie */}
+            <div style={{ marginBottom: '50px' }}>
+              <h3 style={{ 
+                fontSize: '1.8rem', 
+                marginBottom: '20px',
+                color: '#69A297',
+              }}>Unsere Philosophie</h3>
+              <p style={{ lineHeight: 1.6, marginBottom: '15px' }}>
+                Was uns verbindet, ist die Überzeugung, dass Imkerei mehr bedeutet als nur Honig zu produzieren. Es geht um den Schutz der Bienen, die Bewahrung der Artenvielfalt und die Förderung eines nachhaltigen Umgangs mit der Natur.
+              </p>
+              <p style={{ lineHeight: 1.6, marginBottom: '15px' }}>
+                Unsere Bienenvölker stehen an ausgewählten Standorten in der Pfalz, wo sie Zugang zu einer vielfältigen und unbelasteten Pflanzenwelt haben. Wir verzichten bewusst auf chemische Behandlungsmittel und setzen stattdessen auf biologische Methoden und präventive Maßnahmen.
+              </p>
+              <p style={{ lineHeight: 1.6 }}>
+                Jeder von uns bringt unterschiedliche Fähigkeiten und Perspektiven mit, aber gemeinsam bilden wir – ähnlich wie ein Bienenvolk – ein perfekt eingespieltes Team. Wir ergänzen uns in unseren Stärken und lernen täglich voneinander.
+              </p>
+            </div>
+
+            {/* Unsere Vision */}
+            <div style={{ marginBottom: '50px' }}>
+              <h3 style={{ 
+                fontSize: '1.8rem', 
+                marginBottom: '20px',
+                color: '#69A297',
+              }}>Unsere Vision</h3>
+              <p style={{ lineHeight: 1.6, marginBottom: '15px' }}>
+                Wir möchten nicht nur hervorragenden Honig produzieren, sondern auch das Bewusstsein für die Bedeutung der Bienen in unserem Ökosystem schärfen. Durch Workshops, Führungen und Schulbesuche teilen wir unser Wissen und unsere Begeisterung mit Menschen jeden Alters.
+              </p>
+              <p style={{ lineHeight: 1.6 }}>
+                Für die Zukunft träumen wir von einer Imkerei, die nicht nur regional bekannt ist für ihre Qualität, sondern auch als Vorbild dient für nachhaltiges Wirtschaften im Einklang mit der Natur.
+              </p>
+            </div>
+
+            {/* Schlussbemerkung */}
+            <div style={{ 
+              backgroundColor: '#FFECB3', 
+              padding: '25px', 
+              borderRadius: '15px',
+              marginBottom: '40px',
+              textAlign: 'center',
+            }}>
+              <p style={{ 
+                lineHeight: 1.6,
                 fontWeight: 600,
-              }}
-            >
-              Zurück zur Startseite
-            </button>
+                fontSize: '1.1rem',
+              }}>
+                Komm uns besuchen! Wir freuen uns immer über Interessierte, die mehr über Bienen, Honig und nachhaltige Imkerei erfahren möchten. Nach Absprache bieten wir auch Führungen an unseren Bienenständen an.
+              </p>
+            </div>
+
+            {/* Button zurück zur Startseite */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              marginTop: '40px',
+            }}>
+              <button
+                onClick={() => setActivePage('home')}
+                style={{
+                  padding: '14px 25px',
+                  borderRadius: '50px',
+                  backgroundColor: '#FFC145',
+                  color: '#3A3A3A',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                }}
+              >
+                Zurück zur Startseite
+              </button>
+            </div>
           </div>
         </section>
       )}
 
-      {/* Kontaktseite */}
       {activePage === 'contact' && (
         <section style={{
           padding: '100px 5%',
