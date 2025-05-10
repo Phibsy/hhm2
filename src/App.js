@@ -329,7 +329,7 @@ const App = () => {
                   padding: '16px 30px',
                   borderRadius: '50px',
                   fontWeight: 600,
-                  backgroundColor: '#A3C9A8',
+                  backgroundColor: '#FFC145',
                   color: '#3A3A3A',
                   border: 'none',
                   cursor: 'pointer',
@@ -384,7 +384,7 @@ const App = () => {
       {activePage === 'products' && (
         <section style={{
           padding: '100px 5%',
-          backgroundColor: 'white',
+          backgroundColor: 'FFF8E6',
           minHeight: '100vh',
         }}>
           <div style={{
