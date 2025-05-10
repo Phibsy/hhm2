@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import FlappyBee from './components/FlappyBee';
 
 const App = () => {
   // State für aktive Seite und Animationen
@@ -38,7 +39,7 @@ const App = () => {
   // Bienen initialisieren
   useEffect(() => {
     if (activePage === 'home') {
-      // Bienen erstellen
+      // Bienen erstellen mit reduzierter Geschwindigkeit
       const initialBees = [];
       for (let i = 0; i < 8; i++) {
         initialBees.push({
@@ -46,8 +47,8 @@ const App = () => {
           x: Math.random() * 80 + 10, // 10-90% (x-Position)
           y: Math.random() * 80 + 10, // 10-90% (y-Position)
           size: Math.random() * 20 + 40, // 40-60px (größer als vorher)
-          speedX: (Math.random() - 0.5) * 0.8, // Zufällige Richtung und Geschwindigkeit
-          speedY: (Math.random() - 0.5) * 0.8,
+          speedX: (Math.random() - 0.5) * 0.4, // Reduziert von 0.8 auf 0.4
+          speedY: (Math.random() - 0.5) * 0.4, // Reduziert von 0.8 auf 0.4
         });
       }
       beesRef.current = initialBees;
@@ -77,12 +78,12 @@ const App = () => {
         
         // Zufällige kleine Richtungsänderungen für natürlicheres Flugverhalten
         if (Math.random() < 0.03) { // 3% Chance pro Frame
-          newSpeedX += (Math.random() - 0.5) * 0.2;
-          newSpeedY += (Math.random() - 0.5) * 0.2;
+          newSpeedX += (Math.random() - 0.5) * 0.1; // Reduziert von 0.2 auf 0.1
+          newSpeedY += (Math.random() - 0.5) * 0.1; // Reduziert von 0.2 auf 0.1
           
-          // Maximale Geschwindigkeit begrenzen
-          newSpeedX = Math.max(-1.2, Math.min(1.2, newSpeedX));
-          newSpeedY = Math.max(-1.2, Math.min(1.2, newSpeedY));
+          // Maximale Geschwindigkeit begrenzen (reduziert)
+          newSpeedX = Math.max(-0.6, Math.min(0.6, newSpeedX)); // Reduziert von 1.2 auf 0.6
+          newSpeedY = Math.max(-0.6, Math.min(0.6, newSpeedY)); // Reduziert von 1.2 auf 0.6
         }
         
         // Grenzen prüfen
@@ -128,6 +129,11 @@ const App = () => {
     e.preventDefault();
     setFormSubmitted(true);
     console.log('Formular abgesendet:', formData);
+  };
+
+  // Handler for closing the game
+  const handleCloseGame = () => {
+    setShowGame(false);
   };
 
   return (
@@ -384,7 +390,7 @@ const App = () => {
               </button>
             </div>
           </div>
-          {/* Bienen-Animation */}
+          {/* Bienen-Animation - DEUTLICH LANGSAMER */}
           <div style={{ 
             position: 'absolute', 
             top: 0, 
@@ -409,18 +415,21 @@ const App = () => {
                     : `url('/biene-links.png')`,
                   backgroundSize: 'contain',
                   backgroundRepeat: 'no-repeat',
-                  transform: `translateY(${Math.sin(Date.now() * 0.01 + bee.id) * 3}px)`,
+                  transform: `translateY(${Math.sin(Date.now() * 0.005 + bee.id) * 3}px)`, // Langsamere Schwebe-Animation
                   opacity: 0.8,
                   cursor: 'pointer',
                   zIndex: 5,
                   pointerEvents: 'auto',
-                  transition: 'left 0.1s linear, top 0.1s linear'
+                  transition: 'left 0.16s linear, top 0.16s linear' // Sanftere Übergänge
                 }}
               />
             ))}
           </div>
         </section>
       )}
+
+      {/* Flappy Bee Game - only shown when showGame is true */}
+      {showGame && <FlappyBee onClose={handleCloseGame} />}
 
       {activePage === 'products' && (
         <section style={{
