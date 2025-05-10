@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 const FlappyBee = ({ onClose }) => {
   const [beePosition, setBeePosition] = useState(250);
@@ -12,18 +12,18 @@ const FlappyBee = ({ onClose }) => {
   
   const gameRef = useRef();
   const animationRef = useRef();
-  const pipeTimeout = useRef();
-  const gameLoopTimeout = useRef();
+  const lastTimeRef = useRef(0);
   
   // Responsive game constants
   const gameWidth = isPortrait ? 320 : 500;
   const gameHeight = isPortrait ? 500 : 400;
-  const GRAVITY = 0.25;
-  const JUMP_HEIGHT = -6;
+  const GRAVITY = 0.4;
+  const JUMP_HEIGHT = -8;
   const PIPE_WIDTH = isPortrait ? 50 : 60;
-  const PIPE_GAP = isPortrait ? 180 : 200;
+  const PIPE_GAP = isPortrait ? 140 : 160;
   const PIPE_SPEED = isPortrait ? 2.5 : 3;
   const BEE_SIZE = isPortrait ? 35 : 45;
+  const BEE_X = 100; // Fixed x position of bee
   
   // Handle orientation changes
   useEffect(() => {
@@ -44,14 +44,62 @@ const FlappyBee = ({ onClose }) => {
   // Game state
   const beeVelocity = useRef(0);
   
-  // Main game loop using requestAnimationFrame
-  const gameLoop = (timestamp) => {
-    if (!gameStarted || gameOver) return;
+  // Collision detection function
+  const checkCollision = useCallback((currentBeePos, currentPipes) => {
+    // Check ground collision
+    if (currentBeePos > gameHeight - BEE_SIZE - 60) { // 60 is ground height
+      return true;
+    }
     
-    // Update bee position
+    // Check ceiling collision
+    if (currentBeePos < 0) {
+      return true;
+    }
+    
+    // Check pipe collision
+    for (let i = 0; i < currentPipes.length; i++) {
+      const pipe = currentPipes[i];
+      
+      // Check if bee is within horizontal range of pipe
+      if (
+        BEE_X < pipe.x + PIPE_WIDTH &&
+        BEE_X + BEE_SIZE > pipe.x
+      ) {
+        // Check if bee hits top pipe
+        if (currentBeePos < pipe.topHeight) {
+          return true;
+        }
+        
+        // Check if bee hits bottom pipe
+        if (currentBeePos + BEE_SIZE > gameHeight - pipe.bottomHeight) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  }, [gameHeight, BEE_SIZE, PIPE_WIDTH]);
+  
+  // Main game loop using requestAnimationFrame
+  const gameLoop = useCallback((timestamp) => {
+    if (!gameStarted || gameOver) {
+      lastTimeRef.current = timestamp;
+      return;
+    }
+    
+    // Calculate delta time for consistent physics
+    const deltaTime = timestamp - lastTimeRef.current;
+    if (deltaTime < 16) { // Limit to 60fps
+      animationRef.current = requestAnimationFrame(gameLoop);
+      return;
+    }
+    lastTimeRef.current = timestamp;
+    
+    // Update bee physics
     beeVelocity.current += GRAVITY;
-    setBeePosition((prev) => {
-      const newPos = prev + beeVelocity.current;
+    
+    setBeePosition((prevPos) => {
+      const newBeePos = prevPos + beeVelocity.current;
       
       // Set bee direction for animation
       if (beeVelocity.current < 0) {
@@ -60,7 +108,7 @@ const FlappyBee = ({ onClose }) => {
         setBeeDirection('down');
       }
       
-      return newPos;
+      return newBeePos;
     });
     
     // Update pipes
@@ -73,101 +121,72 @@ const FlappyBee = ({ onClose }) => {
       // Remove pipes that are off screen
       const activePipes = updatedPipes.filter((pipe) => pipe.x > -PIPE_WIDTH);
       
-      // Update score when bee passes pipes
-      let newScore = score;
+      // Add new pipe when needed
+      if (activePipes.length === 0 || activePipes[activePipes.length - 1].x < gameWidth - 200) {
+        const topHeight = Math.random() * (gameHeight * 0.4) + 50;
+        const bottomHeight = gameHeight - topHeight - PIPE_GAP - 60; // 60 for ground height
+        
+        activePipes.push({
+          x: gameWidth,
+          topHeight: topHeight,
+          bottomHeight: bottomHeight,
+          passed: false,
+          id: Date.now(),
+        });
+      }
+      
+      // Check score
+      let scoreChanged = false;
       activePipes.forEach((pipe) => {
-        if (!pipe.passed && pipe.x + PIPE_WIDTH < 100) {
-          setScore(prev => prev + 1);
+        if (!pipe.passed && pipe.x + PIPE_WIDTH < BEE_X) {
           pipe.passed = true;
-          newScore++;
+          setScore(prev => prev + 1);
+          scoreChanged = true;
         }
       });
       
       return activePipes;
     });
     
-    // Check collisions
-    checkCollision();
-    
     // Continue game loop
     animationRef.current = requestAnimationFrame(gameLoop);
-  };
+  }, [gameStarted, gameOver, GRAVITY, PIPE_SPEED, PIPE_WIDTH, PIPE_GAP, gameWidth, gameHeight]);
   
-  // Add new pipes at intervals
-  const addPipe = () => {
-    if (!gameStarted || gameOver) return;
-    
-    const topHeight = Math.random() * (gameHeight * 0.4) + gameHeight * 0.1;
-    const bottomHeight = gameHeight - topHeight - PIPE_GAP;
-    
-    setPipes((prev) => [
-      ...prev,
-      {
-        x: gameWidth,
-        topHeight: topHeight,
-        bottomHeight: bottomHeight,
-        passed: false,
-        id: Date.now(),
-      },
-    ]);
-    
-    // Schedule next pipe
-    pipeTimeout.current = setTimeout(addPipe, isPortrait ? 2000 : 1800);
-  };
-  
-  // Start game loop and pipe spawning
+  // Check collision after state updates
   useEffect(() => {
     if (gameStarted && !gameOver) {
-      // Start game loop
+      const collision = checkCollision(beePosition, pipes);
+      if (collision) {
+        endGame();
+      }
+    }
+  }, [beePosition, pipes, gameStarted, gameOver, checkCollision]);
+  
+  // Start game loop
+  useEffect(() => {
+    if (gameStarted && !gameOver) {
       animationRef.current = requestAnimationFrame(gameLoop);
-      
-      // Start pipe spawning
-      pipeTimeout.current = setTimeout(addPipe, 1500);
       
       return () => {
         if (animationRef.current) {
           cancelAnimationFrame(animationRef.current);
         }
-        if (pipeTimeout.current) {
-          clearTimeout(pipeTimeout.current);
-        }
       };
     }
-  }, [gameStarted, gameOver]);
-  
-  // Collision detection
-  const checkCollision = () => {
-    // Check ground/ceiling collision
-    if (beePosition < 0 || beePosition > gameHeight - BEE_SIZE) {
-      endGame();
-      return;
-    }
-    
-    // Check pipe collision
-    pipes.forEach((pipe) => {
-      if (pipe.x < 100 + BEE_SIZE && pipe.x + PIPE_WIDTH > 100) {
-        if (
-          beePosition < pipe.topHeight ||
-          beePosition + BEE_SIZE > pipe.topHeight + PIPE_GAP
-        ) {
-          endGame();
-        }
-      }
-    });
-  };
+  }, [gameStarted, gameOver, gameLoop]);
   
   // End game
-  const endGame = () => {
+  const endGame = useCallback(() => {
     setGameOver(true);
     setGameStarted(false);
     if (score > bestScore) {
       setBestScore(score);
       localStorage.setItem('flappyBeeHighScore', score);
     }
-  };
+  }, [score, bestScore]);
   
   // Handle jump/start
-  const jump = () => {
+  const jump = useCallback(() => {
     if (!gameStarted) {
       setGameStarted(true);
       setGameOver(false);
@@ -178,17 +197,17 @@ const FlappyBee = ({ onClose }) => {
     } else if (!gameOver) {
       beeVelocity.current = JUMP_HEIGHT;
     }
-  };
+  }, [gameStarted, gameOver, gameHeight, JUMP_HEIGHT]);
   
   // Restart game
-  const restart = () => {
+  const restart = useCallback(() => {
     setGameOver(false);
     setGameStarted(false);
     setScore(0);
     setPipes([]);
     setBeePosition(gameHeight / 2);
     beeVelocity.current = 0;
-  };
+  }, [gameHeight]);
   
   // Event listeners
   useEffect(() => {
@@ -213,7 +232,7 @@ const FlappyBee = ({ onClose }) => {
       window.removeEventListener('keydown', handleKeyPress);
       window.removeEventListener('touchstart', handleTouchStart);
     };
-  }, [gameStarted, gameOver]);
+  }, [jump]);
   
   // Styles for game elements
   const styles = {
@@ -288,7 +307,7 @@ const FlappyBee = ({ onClose }) => {
     },
     bee: {
       position: 'absolute',
-      left: '100px',
+      left: `${BEE_X}px`,
       top: `${beePosition}px`,
       width: `${BEE_SIZE}px`,
       height: `${BEE_SIZE}px`,
@@ -493,7 +512,7 @@ const FlappyBee = ({ onClose }) => {
             <div style={{
               ...styles.pipe,
               left: `${pipe.x}px`,
-              bottom: 0,
+              bottom: 60, // Account for ground height
               height: `${pipe.bottomHeight}px`,
             }}>
               <div style={styles.flowerBottom}>🌻</div>
