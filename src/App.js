@@ -11,11 +11,19 @@ const App = () => {
   const [showGame, setShowGame] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+  const [scrollY, setScrollY] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
   
   // Referenzen für Animationen
   const animationRef = useRef(null);
   const beesRef = useRef([]);
   const videoRef = useRef(null);
+  const sectionRefs = {
+    home: useRef(null),
+    products: useRef(null),
+    about: useRef(null),
+    contact: useRef(null),
+  };
 
   // Event listener for window resize
   useEffect(() => {
@@ -25,6 +33,44 @@ const App = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Parallax scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Load animations
+  useEffect(() => {
+    setIsLoading(true);
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [activePage]);
+
+  // Smooth scroll function
+  const smoothScrollTo = (elementRef) => {
+    if (elementRef.current) {
+      elementRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    }
+  };
+
+  // Page transitions
+  const navigateToPage = (page) => {
+    setActivePage(page);
+    setMobileMenuOpen(false);
+    
+    // Smooth scroll to top on page change
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Video-Events-Handler
   const handleVideoLoad = () => {
@@ -136,6 +182,53 @@ const App = () => {
     setShowGame(false);
   };
 
+  // Custom styles for animations
+  const getButtonStyle = (hovering = false) => ({
+    display: 'inline-block',
+    padding: isMobile ? '14px 25px' : '16px 30px',
+    borderRadius: '50px',
+    fontWeight: 600,
+    backgroundColor: hovering ? '#e6aa35' : '#FFC145',
+    color: '#3A3A3A',
+    border: 'none',
+    cursor: 'pointer',
+    boxShadow: hovering ? '0 6px 15px rgba(0, 0, 0, 0.15)' : '0 4px 10px rgba(0, 0, 0, 0.1)',
+    transition: 'all 0.3s ease',
+    transform: hovering ? 'translateY(-2px) scale(1.05)' : 'translateY(0) scale(1)',
+    fontSize: isMobile ? '0.9rem' : '1rem',
+    fontFamily: "'Montserrat', sans-serif",
+  });
+
+  const getImageStyle = (hovering = false) => ({
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    transition: 'all 0.4s ease',
+    transform: hovering ? 'scale(1.05)' : 'scale(1)',
+  });
+
+  const getCardStyle = (hovering = false) => ({
+    transition: 'all 0.3s ease',
+    transform: hovering ? 'translateY(-5px)' : 'translateY(0)',
+    boxShadow: hovering ? '0 20px 35px rgba(0, 0, 0, 0.15)' : '0 10px 25px rgba(0, 0, 0, 0.1)',
+  });
+
+  const getFadeInStyle = (isVisible = true, delay = 0) => ({
+    opacity: isVisible ? 1 : 0,
+    transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
+    transition: `all 0.6s ease ${delay}s`,
+  });
+
+  const getSlideInStyle = (isVisible = true, delay = 0, direction = 'left') => ({
+    opacity: isVisible ? 1 : 0,
+    transform: isVisible 
+      ? 'translateX(0)' 
+      : direction === 'left' 
+        ? 'translateX(-30px)' 
+        : 'translateX(30px)',
+    transition: `all 0.6s ease ${delay}s`,
+  });
+
   return (
     <div style={{
       fontFamily: "'Montserrat', sans-serif",
@@ -159,11 +252,12 @@ const App = () => {
         boxShadow: '0 2px 15px rgba(0, 0, 0, 0.1)',
         backdropFilter: 'blur(5px)',
         flexWrap: 'wrap',
+        transition: 'all 0.3s ease',
       }}>
         <a href="#" 
            onClick={(e) => {
              e.preventDefault();
-             setActivePage('home');
+             navigateToPage('home');
            }}
            style={{
              display: 'flex',
@@ -172,6 +266,7 @@ const App = () => {
              fontSize: isMobile ? '1.2rem' : '1.5rem',
              color: '#3A3A3A',
              textDecoration: 'none',
+             transition: 'color 0.3s ease',
            }}>
           Haas, Heil & Müller
         </a>
@@ -186,11 +281,13 @@ const App = () => {
             fontSize: '1.5rem',
             cursor: 'pointer',
             color: '#3A3A3A',
+            transition: 'transform 0.3s ease',
+            transform: mobileMenuOpen ? 'rotate(90deg)' : 'rotate(0deg)',
           }}
         >
           ☰
         </button>
-        
+
         {/* Navigation Links */}
         <div style={{
           display: isMobile ? (mobileMenuOpen ? 'flex' : 'none') : 'flex',
@@ -204,6 +301,9 @@ const App = () => {
           padding: isMobile ? '20px' : '0',
           boxShadow: isMobile ? '0 2px 15px rgba(0, 0, 0, 0.1)' : 'none',
           width: isMobile ? '100%' : 'auto',
+          opacity: isMobile ? (mobileMenuOpen ? 1 : 0) : 1,
+          transform: isMobile ? (mobileMenuOpen ? 'translateY(0)' : 'translateY(-10px)') : 'translateY(0)',
+          transition: 'all 0.3s ease',
         }}>
           <a href="#"
              style={{
@@ -214,10 +314,11 @@ const App = () => {
                transition: 'all 0.3s ease',
                cursor: 'pointer',
              }} 
+             onMouseEnter={(e) => e.target.style.color = '#69A297'}
+             onMouseLeave={(e) => e.target.style.color = activePage === 'home' ? '#69A297' : '#3A3A3A'}
              onClick={(e) => {
                e.preventDefault();
-               setActivePage('home');
-               setMobileMenuOpen(false);
+               navigateToPage('home');
              }}>
             Start
           </a>
@@ -230,10 +331,11 @@ const App = () => {
                transition: 'all 0.3s ease',
                cursor: 'pointer',
              }} 
+             onMouseEnter={(e) => e.target.style.color = '#69A297'}
+             onMouseLeave={(e) => e.target.style.color = activePage === 'products' ? '#69A297' : '#3A3A3A'}
              onClick={(e) => {
                e.preventDefault();
-               setActivePage('products');
-               setMobileMenuOpen(false);
+               navigateToPage('products');
              }}>
             Unser Honig
           </a>
@@ -246,10 +348,11 @@ const App = () => {
                transition: 'all 0.3s ease',
                cursor: 'pointer',
              }} 
+             onMouseEnter={(e) => e.target.style.color = '#69A297'}
+             onMouseLeave={(e) => e.target.style.color = activePage === 'about' ? '#69A297' : '#3A3A3A'}
              onClick={(e) => {
                e.preventDefault();
-               setActivePage('about');
-               setMobileMenuOpen(false);
+               navigateToPage('about');
              }}>
             Über uns
           </a>
@@ -262,10 +365,11 @@ const App = () => {
                transition: 'all 0.3s ease',
                cursor: 'pointer',
              }} 
+             onMouseEnter={(e) => e.target.style.color = '#69A297'}
+             onMouseLeave={(e) => e.target.style.color = activePage === 'contact' ? '#69A297' : '#3A3A3A'}
              onClick={(e) => {
                e.preventDefault();
-               setActivePage('contact');
-               setMobileMenuOpen(false);
+               navigateToPage('contact');
              }}>
             Kontakt
           </a>
@@ -274,17 +378,21 @@ const App = () => {
 
       {/* Dynamischer Inhalt */}
       {activePage === 'home' && (
-        <section style={{
-          height: '100vh',
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          textAlign: 'center',
-          position: 'relative',
-          paddingTop: '80px',
-        }}>
+        <section 
+          ref={sectionRefs.home}
+          style={{
+            height: '100vh',
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            textAlign: 'center',
+            position: 'relative',
+            paddingTop: '80px',
+            ...getFadeInStyle(!isLoading),
+          }}
+        >
           {/* Video-Hintergrund - Sichtbarkeit verbessert */}
           <div style={{
             position: 'absolute',
@@ -295,6 +403,8 @@ const App = () => {
             overflow: 'hidden',
             zIndex: 0,
             backgroundColor: 'transparent',
+            transform: `translateY(${scrollY * 0.3}px)`,
+            transition: 'transform 0.1s ease-out',
           }}>
             <video
               ref={videoRef}
@@ -306,11 +416,11 @@ const App = () => {
               onError={handleVideoError}
               style={{
                 width: '100%',
-                height: '100%',
+                height: '120%',
                 objectFit: 'cover',
                 display: 'block',
                 position: 'absolute',
-                top: 0,
+                top: '-10%',
                 left: 0,
                 opacity: 1,
               }}
@@ -333,63 +443,54 @@ const App = () => {
             maxWidth: '800px',
             zIndex: 10, 
             padding: '0 20px',
+            ...getFadeInStyle(!isLoading, 0.2),
           }}>
             <h1 style={{
               fontSize: isMobile ? '2.5rem' : '3.5rem',
               marginBottom: '20px',
               color: '#3A3A3A',
+              ...getSlideInStyle(!isLoading, 0.3),
             }}>Honig aus Leidenschaft</h1>
             <p style={{
               fontSize: isMobile ? '1rem' : '1.2rem',
               marginBottom: '40px',
               lineHeight: 1.6,
+              ...getSlideInStyle(!isLoading, 0.4),
             }}>Die neue Generation Imker aus der Pfalz bringt dir echten, nachhaltigen Honig direkt vom Imker. Handgemacht und mit Liebe zur Natur.</p>
             <div style={{
               display: 'flex',
               gap: '20px',
               justifyContent: 'center',
               flexWrap: 'wrap',
+              ...getSlideInStyle(!isLoading, 0.5),
             }}>
-              <button 
-                onClick={() => setActivePage('products')}
-                style={{
-                  display: 'inline-block',
-                  padding: isMobile ? '14px 25px' : '16px 30px',
-                  borderRadius: '50px',
-                  fontWeight: 600,
-                  backgroundColor: '#FFC145',
-                  color: '#3A3A3A',
-                  border: 'none',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)',
-                  transition: 'all 0.3s ease',
-                  fontSize: isMobile ? '0.9rem' : '1rem',
-                  fontFamily: "'Montserrat', sans-serif",
+              <button
+                onMouseOver={(e) => {
+                  Object.assign(e.target.style, getButtonStyle(true));
                 }}
+                onMouseOut={(e) => {
+                  Object.assign(e.target.style, getButtonStyle(false));
+                }}
+                onClick={() => navigateToPage('products')}
+                style={getButtonStyle(false)}
               >
                 Unser Honig
               </button>
-              <button 
-                onClick={() => setActivePage('about')}
-                style={{
-                  display: 'inline-block',
-                  padding: isMobile ? '14px 25px' : '16px 30px',
-                  borderRadius: '50px',
-                  fontWeight: 600,
-                  backgroundColor: '#FFC145',
-                  color: '#3A3A3A',
-                  border: 'none',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)',
-                  transition: 'all 0.3s ease',
-                  fontSize: isMobile ? '0.9rem' : '1rem',
-                  fontFamily: "'Montserrat', sans-serif",
+              <button
+                onMouseOver={(e) => {
+                  Object.assign(e.target.style, getButtonStyle(true));
                 }}
+                onMouseOut={(e) => {
+                  Object.assign(e.target.style, getButtonStyle(false));
+                }}
+                onClick={() => navigateToPage('about')}
+                style={getButtonStyle(false)}
               >
                 Über uns
               </button>
             </div>
           </div>
+
           {/* Bienen-Animation - DEUTLICH LANGSAMER */}
           <div style={{ 
             position: 'absolute', 
@@ -398,7 +499,9 @@ const App = () => {
             width: '100%', 
             height: '100%', 
             zIndex: 5,
-            pointerEvents: 'none' 
+            pointerEvents: 'none',
+            transform: `translateY(${scrollY * 0.1}px)`,
+            transition: 'transform 0.1s ease-out',
           }}>
             {bees.map(bee => (
               <div
@@ -415,12 +518,15 @@ const App = () => {
                     : `url('/biene-links.png')`,
                   backgroundSize: 'contain',
                   backgroundRepeat: 'no-repeat',
-                  transform: `translateY(${Math.sin(Date.now() * 0.005 + bee.id) * 3}px)`, // Langsamere Schwebe-Animation
+                  transform: `
+                    translateY(${Math.sin(Date.now() * 0.005 + bee.id) * 3}px)
+                    scale(${1 + Math.sin(Date.now() * 0.003 + bee.id) * 0.05})
+                  `,
                   opacity: 0.8,
                   cursor: 'pointer',
                   zIndex: 5,
                   pointerEvents: 'auto',
-                  transition: 'left 0.16s linear, top 0.16s linear' // Sanftere Übergänge
+                  transition: 'all 0.16s linear',
                 }}
               />
             ))}
@@ -432,14 +538,18 @@ const App = () => {
       {showGame && <FlappyBee onClose={handleCloseGame} />}
 
       {activePage === 'products' && (
-        <section style={{
-          padding: isMobile ? '80px 5%' : '100px 5%',
-          backgroundColor: '#FFF8E6',
-          minHeight: '100vh',
-        }}>
+        <section 
+          ref={sectionRefs.products}
+          style={{
+            padding: isMobile ? '80px 5%' : '100px 5%',
+            backgroundColor: '#FFF8E6',
+            minHeight: '100vh',
+          }}
+        >
           <div style={{
             textAlign: 'center',
             marginBottom: '50px',
+            ...getFadeInStyle(!isLoading),
           }}>
             <h2 style={{
               fontSize: isMobile ? '2rem' : '2.5rem',
@@ -468,24 +578,42 @@ const App = () => {
               flex: 1,
               minWidth: '300px',
               maxWidth: isMobile ? '100%' : '500px',
+              ...getSlideInStyle(!isLoading, 0.2, 'left'),
             }}>
-              <img 
-                src="/honigglas.jpg"
-                alt="Honiglas Mockup" 
-                style={{
-                  width: '100%',
-                  height: 'auto',
-                  borderRadius: '20px',
-                  boxShadow: '0 15px 30px rgba(0, 0, 0, 0.1)',
-                  transition: 'transform 0.3s ease',
+              <div
+                onMouseOver={(e) => {
+                  e.currentTarget.firstChild.style.transform = 'scale(1.05) rotate(-2deg)';
+                  e.currentTarget.style.transform = 'translateY(-10px)';
                 }}
-              />
+                onMouseOut={(e) => {
+                  e.currentTarget.firstChild.style.transform = 'scale(1) rotate(0deg)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+                style={{
+                  overflow: 'hidden',
+                  borderRadius: '20px',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 15px 30px rgba(0, 0, 0, 0.1)',
+                }}
+              >
+                <img 
+                  src="/honigglas.jpg"
+                  alt="Honiglas Mockup" 
+                  style={{
+                    width: '100%',
+                    height: 'auto',
+                    display: 'block',
+                    transition: 'all 0.3s ease',
+                  }}
+                />
+              </div>
             </div>
             
             <div style={{
               flex: 1,
               minWidth: '300px',
               maxWidth: isMobile ? '100%' : '500px',
+              ...getSlideInStyle(!isLoading, 0.3, 'right'),
             }}>
               <h3 style={{
                 fontSize: isMobile ? '1.5rem' : '1.8rem',
@@ -526,6 +654,7 @@ const App = () => {
                 padding: isMobile ? '20px' : '30px',
                 borderRadius: '20px',
                 boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)',
+                ...getFadeInStyle(!isLoading, 0.5),
               }}>
                 <h4 style={{
                   marginBottom: '20px',
@@ -556,6 +685,15 @@ const App = () => {
                           borderRadius: '8px',
                           fontSize: isMobile ? '0.9rem' : '1rem',
                           boxSizing: 'border-box',
+                          transition: 'all 0.3s ease',
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = '#69A297';
+                          e.target.style.transform = 'scale(1.02)';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#FFF8E6';
+                          e.target.style.transform = 'scale(1)';
                         }}
                         value={formData.name}
                         onChange={handleInputChange}
@@ -582,21 +720,44 @@ const App = () => {
                           borderRadius: '8px',
                           fontSize: isMobile ? '0.9rem' : '1rem',
                           boxSizing: 'border-box',
+                          transition: 'all 0.3s ease',
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = '#69A297';
+                          e.target.style.transform = 'scale(1.02)';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#FFF8E6';
+                          e.target.style.transform = 'scale(1)';
                         }}
                         value={formData.email}
                         onChange={handleInputChange}
                       />
                     </div>
-                    <button type="submit" style={{
-                      backgroundColor: '#69A297',
-                      color: 'white',
-                      border: 'none',
-                      padding: isMobile ? '10px 20px' : '12px 25px',
-                      borderRadius: '8px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      fontSize: isMobile ? '0.9rem' : '1rem',
-                    }}>Vormerken</button>
+                    <button 
+                      type="submit" 
+                      onMouseOver={(e) => {
+                        e.target.style.backgroundColor = '#5a8c82';
+                        e.target.style.transform = 'translateY(-2px)';
+                      }}
+                      onMouseOut={(e) => {
+                        e.target.style.backgroundColor = '#69A297';
+                        e.target.style.transform = 'translateY(0)';
+                      }}
+                      style={{
+                        backgroundColor: '#69A297',
+                        color: 'white',
+                        border: 'none',
+                        padding: isMobile ? '10px 20px' : '12px 25px',
+                        borderRadius: '8px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        fontSize: isMobile ? '0.9rem' : '1rem',
+                        transition: 'all 0.3s ease',
+                      }}
+                    >
+                      Vormerken
+                    </button>
                   </form>
                 )}
               </div>
@@ -606,11 +767,14 @@ const App = () => {
       )}
 
       {activePage === 'about' && (
-        <section style={{
-          padding: isMobile ? '80px 5%' : '100px 5%',
-          backgroundColor: '#FFF8E6',
-          minHeight: '100vh',
-        }}>
+        <section 
+          ref={sectionRefs.about}
+          style={{
+            padding: isMobile ? '80px 5%' : '100px 5%',
+            backgroundColor: '#FFF8E6',
+            minHeight: '100vh',
+          }}
+        >
           <div style={{
             maxWidth: '1000px',
             margin: '0 auto',
@@ -620,10 +784,14 @@ const App = () => {
               textAlign: 'center',
               marginBottom: '40px',
               color: '#3A3A3A',
+              ...getFadeInStyle(!isLoading),
             }}>Über uns</h2>
 
             {/* Unsere Geschichte */}
-            <div style={{ marginBottom: '50px' }}>
+            <div style={{ 
+              marginBottom: '50px',
+              ...getFadeInStyle(!isLoading, 0.2),
+            }}>
               <h3 style={{ 
                 fontSize: isMobile ? '1.5rem' : '1.8rem', 
                 marginBottom: '20px',
@@ -635,13 +803,16 @@ const App = () => {
             </div>
 
             {/* Das Team - MIT FOTOS */}
-            <div style={{ marginBottom: '50px' }}>
+            <div style={{ 
+              marginBottom: '50px',
+              ...getFadeInStyle(!isLoading, 0.3),
+            }}>
               <h3 style={{ 
                 fontSize: isMobile ? '1.5rem' : '1.8rem', 
                 marginBottom: '40px',
                 color: '#69A297',
               }}>Das Team</h3>
-              
+
               {/* Jonathan - mit Foto */}
               <div style={{ 
                 marginBottom: '50px',
@@ -649,23 +820,29 @@ const App = () => {
                 flexDirection: isMobile ? 'column' : 'row',
                 gap: isMobile ? '20px' : '40px',
                 alignItems: isMobile ? 'center' : 'flex-start',
+                ...getSlideInStyle(!isLoading, 0.1, 'left'),
               }}>
-                <div style={{
-                  flexShrink: 0,
-                  width: isMobile ? '200px' : '250px',
-                  height: isMobile ? '200px' : '250px',
-                  borderRadius: '15px',
-                  overflow: 'hidden',
-                  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-                }}>
+                <div 
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.05) rotate(-2deg)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+                  }}
+                  style={{
+                    flexShrink: 0,
+                    width: isMobile ? '200px' : '250px',
+                    height: isMobile ? '200px' : '250px',
+                    borderRadius: '15px',
+                    overflow: 'hidden',
+                    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                    transition: 'all 0.3s ease',
+                  }}
+                >
                   <img 
-                    src="/team/jonathan.jpg" // Platzhalter - wird später durch echtes Foto ersetzt
+                    src="/team/jonathan.jpg"
                     alt="Jonathan Heil" 
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                    }}
+                    style={getImageStyle(false)}
                   />
                 </div>
                 <div style={{ flex: 1 }}>
@@ -687,23 +864,29 @@ const App = () => {
                 flexDirection: isMobile ? 'column' : 'row-reverse',
                 gap: isMobile ? '20px' : '40px',
                 alignItems: isMobile ? 'center' : 'flex-start',
+                ...getSlideInStyle(!isLoading, 0.2, 'right'),
               }}>
-                <div style={{
-                  flexShrink: 0,
-                  width: isMobile ? '200px' : '250px',
-                  height: isMobile ? '200px' : '250px',
-                  borderRadius: '15px',
-                  overflow: 'hidden',
-                  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-                }}>
+                <div 
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.05) rotate(2deg)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+                  }}
+                  style={{
+                    flexShrink: 0,
+                    width: isMobile ? '200px' : '250px',
+                    height: isMobile ? '200px' : '250px',
+                    borderRadius: '15px',
+                    overflow: 'hidden',
+                    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                    transition: 'all 0.3s ease',
+                  }}
+                >
                   <img 
-                    src="/team/thorben.jpg" // Platzhalter - wird später durch echtes Foto ersetzt
-                    alt="Thorben Müller" 
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                    }}
+                    src="/team/thorben.jpg"
+                    alt="Thorben Heil" 
+                    style={getImageStyle(false)}
                   />
                 </div>
                 <div style={{ flex: 1, textAlign: isMobile ? 'center' : 'left' }}>
@@ -711,7 +894,7 @@ const App = () => {
                     fontSize: isMobile ? '1.1rem' : '1.3rem', 
                     marginBottom: '10px',
                     color: '#3A3A3A',
-                  }}>Thorben Müller</h4>
+                  }}>Thorben Heil</h4>
                   <p style={{ lineHeight: 1.6, fontSize: isMobile ? '0.95rem' : '1rem' }}>
                     Thorben ist der Handwerker in unserem Team. Von der Konstruktion optimaler Bienenstöcke bis hin zur Verfeinerung unserer Honigschleuder – er sorgt dafür, dass unsere Ausrüstung perfekt funktioniert. Mit seinem Hintergrund als Zimmermann achtet er besonders auf nachhaltige Materialien und regionale Holzquellen. "Qualität beginnt beim Zuhause der Bienen", ist sein Motto. Thorben kennt zudem jeden Winkel der Pfälzer Landschaft und hat ein untrügliches Gespür für die besten Standorte unserer Bienenvölker.
                   </p>
@@ -725,23 +908,29 @@ const App = () => {
                 flexDirection: isMobile ? 'column' : 'row',
                 gap: isMobile ? '20px' : '40px',
                 alignItems: isMobile ? 'center' : 'flex-start',
+                ...getSlideInStyle(!isLoading, 0.3, 'left'),
               }}>
-                <div style={{
-                  flexShrink: 0,
-                  width: isMobile ? '200px' : '250px',
-                  height: isMobile ? '200px' : '250px',
-                  borderRadius: '15px',
-                  overflow: 'hidden',
-                  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-                }}>
+                <div 
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.05) rotate(-2deg)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+                  }}
+                  style={{
+                    flexShrink: 0,
+                    width: isMobile ? '200px' : '250px',
+                    height: isMobile ? '200px' : '250px',
+                    borderRadius: '15px',
+                    overflow: 'hidden',
+                    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                    transition: 'all 0.3s ease',
+                  }}
+                >
                   <img 
-                    src="/team/philipp.jpg" // Platzhalter - wird später durch echtes Foto ersetzt
+                    src="/team/philipp.jpg"
                     alt="Philipp Haas" 
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                    }}
+                    style={getImageStyle(false)}
                   />
                 </div>
                 <div style={{ flex: 1 }}>
@@ -758,7 +947,10 @@ const App = () => {
             </div>
 
             {/* Unsere Philosophie */}
-            <div style={{ marginBottom: '50px' }}>
+            <div style={{ 
+              marginBottom: '50px',
+              ...getFadeInStyle(!isLoading, 0.4),
+            }}>
               <h3 style={{ 
                 fontSize: isMobile ? '1.5rem' : '1.8rem', 
                 marginBottom: '20px',
@@ -776,7 +968,10 @@ const App = () => {
             </div>
 
             {/* Unsere Vision */}
-            <div style={{ marginBottom: '50px' }}>
+            <div style={{ 
+              marginBottom: '50px',
+              ...getFadeInStyle(!isLoading, 0.5),
+            }}>
               <h3 style={{ 
                 fontSize: isMobile ? '1.5rem' : '1.8rem', 
                 marginBottom: '20px',
@@ -791,13 +986,25 @@ const App = () => {
             </div>
 
             {/* Schlussbemerkung */}
-            <div style={{ 
-              backgroundColor: '#FFECB3', 
-              padding: isMobile ? '20px' : '25px', 
-              borderRadius: '15px',
-              marginBottom: '40px',
-              textAlign: 'center',
-            }}>
+            <div 
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = '#ffe19a';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = '#FFECB3';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+              style={{ 
+                backgroundColor: '#FFECB3', 
+                padding: isMobile ? '20px' : '25px', 
+                borderRadius: '15px',
+                marginBottom: '40px',
+                textAlign: 'center',
+                transition: 'all 0.3s ease',
+                ...getFadeInStyle(!isLoading, 0.6),
+              }}
+            >
               <p style={{ 
                 lineHeight: 1.6,
                 fontWeight: 600,
@@ -814,17 +1021,14 @@ const App = () => {
               marginTop: '40px',
             }}>
               <button
-                onClick={() => setActivePage('home')}
-                style={{
-                  padding: isMobile ? '12px 20px' : '14px 25px',
-                  borderRadius: '50px',
-                  backgroundColor: '#FFC145',
-                  color: '#3A3A3A',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                  fontSize: isMobile ? '0.9rem' : '1rem',
+                onMouseOver={(e) => {
+                  Object.assign(e.target.style, getButtonStyle(true));
                 }}
+                onMouseOut={(e) => {
+                  Object.assign(e.target.style, getButtonStyle(false));
+                }}
+                onClick={() => navigateToPage('home')}
+                style={getButtonStyle(false)}
               >
                 Zurück zur Startseite
               </button>
@@ -834,14 +1038,18 @@ const App = () => {
       )}
 
       {activePage === 'contact' && (
-        <section style={{
-          padding: isMobile ? '80px 5%' : '100px 5%',
-          backgroundColor: '#FFF8E6',
-          minHeight: '100vh',
-        }}>
+        <section 
+          ref={sectionRefs.contact}
+          style={{
+            padding: isMobile ? '80px 5%' : '100px 5%',
+            backgroundColor: '#FFF8E6',
+            minHeight: '100vh',
+          }}
+        >
           <div style={{
             textAlign: 'center',
             marginBottom: '50px',
+            ...getFadeInStyle(!isLoading),
           }}>
             <h2 style={{
               fontSize: isMobile ? '2rem' : '2.5rem',
@@ -857,14 +1065,26 @@ const App = () => {
             }}>Hast du Fragen zu unserem Honig oder möchtest du eine Bestellung aufgeben? Kontaktiere uns gerne!</p>
           </div>
           
-          <div style={{
-            maxWidth: '600px',
-            margin: '0 auto',
-            backgroundColor: 'white',
-            padding: isMobile ? '30px' : '40px',
-            borderRadius: '20px',
-            boxShadow: '0 15px 30px rgba(0, 0, 0, 0.1)',
-          }}>
+          <div 
+            onMouseOver={(e) => {
+              e.currentTarget.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.15)';
+              e.currentTarget.style.transform = 'translateY(-5px)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.boxShadow = '0 15px 30px rgba(0, 0, 0, 0.1)';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+            style={{
+              maxWidth: '600px',
+              margin: '0 auto',
+              backgroundColor: 'white',
+              padding: isMobile ? '30px' : '40px',
+              borderRadius: '20px',
+              boxShadow: '0 15px 30px rgba(0, 0, 0, 0.1)',
+              transition: 'all 0.3s ease',
+              ...getFadeInStyle(!isLoading, 0.2),
+            }}
+          >
             <form onSubmit={(e) => {
               e.preventDefault();
               alert('Nachricht wurde gesendet!');
@@ -889,6 +1109,15 @@ const App = () => {
                     borderRadius: '8px',
                     fontSize: isMobile ? '0.9rem' : '1rem',
                     boxSizing: 'border-box',
+                    transition: 'all 0.3s ease',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#69A297';
+                    e.target.style.transform = 'scale(1.02)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#FFF8E6';
+                    e.target.style.transform = 'scale(1)';
                   }}
                 />
               </div>
@@ -913,6 +1142,15 @@ const App = () => {
                     borderRadius: '8px',
                     fontSize: isMobile ? '0.9rem' : '1rem',
                     boxSizing: 'border-box',
+                    transition: 'all 0.3s ease',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#69A297';
+                    e.target.style.transform = 'scale(1.02)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#FFF8E6';
+                    e.target.style.transform = 'scale(1)';
                   }}
                 />
               </div>
@@ -938,20 +1176,43 @@ const App = () => {
                     fontSize: isMobile ? '0.9rem' : '1rem',
                     resize: 'vertical',
                     boxSizing: 'border-box',
+                    transition: 'all 0.3s ease',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#69A297';
+                    e.target.style.transform = 'scale(1.02)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#FFF8E6';
+                    e.target.style.transform = 'scale(1)';
                   }}
                 />
               </div>
               
-              <button type="submit" style={{
-                backgroundColor: '#69A297',
-                color: 'white',
-                border: 'none',
-                padding: isMobile ? '10px 20px' : '12px 25px',
-                borderRadius: '8px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                fontSize: isMobile ? '0.9rem' : '1rem',
-              }}>Nachricht senden</button>
+              <button 
+                type="submit" 
+                onMouseOver={(e) => {
+                  e.target.style.backgroundColor = '#5a8c82';
+                  e.target.style.transform = 'translateY(-2px)';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.backgroundColor = '#69A297';
+                  e.target.style.transform = 'translateY(0)';
+                }}
+                style={{
+                  backgroundColor: '#69A297',
+                  color: 'white',
+                  border: 'none',
+                  padding: isMobile ? '10px 20px' : '12px 25px',
+                  borderRadius: '8px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontSize: isMobile ? '0.9rem' : '1rem',
+                  transition: 'all 0.3s ease',
+                }}
+              >
+                Nachricht senden
+              </button>
             </form>
           </div>
         </section>
@@ -979,57 +1240,97 @@ const App = () => {
                  color: '#3A3A3A',
                  textDecoration: 'none',
                  fontWeight: 500,
-                 transition: 'color 0.3s ease',
+                 transition: 'all 0.3s ease',
                  cursor: 'pointer',
                  fontSize: isMobile ? '0.9rem' : '1rem',
                }} 
+               onMouseOver={(e) => {
+                 e.target.style.color = '#69A297';
+                 e.target.style.transform = 'translateY(-2px)';
+               }}
+               onMouseOut={(e) => {
+                 e.target.style.color = '#3A3A3A';
+                 e.target.style.transform = 'translateY(0)';
+               }}
                onClick={(e) => {
                  e.preventDefault();
-                 setActivePage('home');
+                 navigateToPage('home');
                }}>Start</a>
             <a href="#" 
                style={{
                  color: '#3A3A3A',
                  textDecoration: 'none',
                  fontWeight: 500,
-                 transition: 'color 0.3s ease',
+                 transition: 'all 0.3s ease',
                  cursor: 'pointer',
                  fontSize: isMobile ? '0.9rem' : '1rem',
                }} 
+               onMouseOver={(e) => {
+                 e.target.style.color = '#69A297';
+                 e.target.style.transform = 'translateY(-2px)';
+               }}
+               onMouseOut={(e) => {
+                 e.target.style.color = '#3A3A3A';
+                 e.target.style.transform = 'translateY(0)';
+               }}
                onClick={(e) => {
                  e.preventDefault();
-                 setActivePage('products');
+                 navigateToPage('products');
                }}>Unser Honig</a>
             <a href="#" 
                style={{
                  color: '#3A3A3A',
                  textDecoration: 'none',
                  fontWeight: 500,
-                 transition: 'color 0.3s ease',
+                 transition: 'all 0.3s ease',
                  cursor: 'pointer',
                  fontSize: isMobile ? '0.9rem' : '1rem',
                }} 
+               onMouseOver={(e) => {
+                 e.target.style.color = '#69A297';
+                 e.target.style.transform = 'translateY(-2px)';
+               }}
+               onMouseOut={(e) => {
+                 e.target.style.color = '#3A3A3A';
+                 e.target.style.transform = 'translateY(0)';
+               }}
                onClick={(e) => {
                  e.preventDefault();
-                 setActivePage('about');
+                 navigateToPage('about');
                }}>Über uns</a>
             <a href="#" 
                style={{
                  color: '#3A3A3A',
                  textDecoration: 'none',
                  fontWeight: 500,
-                 transition: 'color 0.3s ease',
+                 transition: 'all 0.3s ease',
                  cursor: 'pointer',
                  fontSize: isMobile ? '0.9rem' : '1rem',
+               }}
+               onMouseOver={(e) => {
+                 e.target.style.color = '#69A297';
+                 e.target.style.transform = 'translateY(-2px)';
+               }}
+               onMouseOut={(e) => {
+                 e.target.style.color = '#3A3A3A';
+                 e.target.style.transform = 'translateY(0)';
                }}>Datenschutz</a>
             <a href="#" 
                style={{
                  color: '#3A3A3A',
                  textDecoration: 'none',
                  fontWeight: 500,
-                 transition: 'color 0.3s ease',
+                 transition: 'all 0.3s ease',
                  cursor: 'pointer',
                  fontSize: isMobile ? '0.9rem' : '1rem',
+               }}
+               onMouseOver={(e) => {
+                 e.target.style.color = '#69A297';
+                 e.target.style.transform = 'translateY(-2px)';
+               }}
+               onMouseOut={(e) => {
+                 e.target.style.color = '#3A3A3A';
+                 e.target.style.transform = 'translateY(0)';
                }}>Impressum</a>
           </div>
           
@@ -1041,8 +1342,16 @@ const App = () => {
                  color: '#3A3A3A',
                  textDecoration: 'none',
                  fontWeight: 600,
-                 transition: 'color 0.3s ease',
+                 transition: 'all 0.3s ease',
                  fontSize: isMobile ? '0.9rem' : '1rem',
+               }}
+               onMouseOver={(e) => {
+                 e.target.style.color = '#69A297';
+                 e.target.style.transform = 'translateY(-2px)';
+               }}
+               onMouseOut={(e) => {
+                 e.target.style.color = '#3A3A3A';
+                 e.target.style.transform = 'translateY(0)';
                }}>info@hhm.de</a>
           </div>
           
